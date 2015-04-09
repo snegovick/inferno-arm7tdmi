@@ -500,13 +500,13 @@ exfree(Export *fs)
 }
 
 static int
-exwork(void*)
+exwork(void* o_v)
 {
 	return exq.head != nil;
 }
 
 static void
-exslave(void*)
+exslave(void* o_v)
 {
 	Export *fs;
 	Exq *q, *t, *fq, **last;

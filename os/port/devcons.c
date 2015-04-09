@@ -70,7 +70,9 @@ static Cmdtab sysctlcmd[] =
 void
 printinit(void)
 {
+  uart0_puts("printinit\r\n");
 	lineq = qopen(2*1024, 0, nil, nil);
+  uart0_puts("printinit done\r\n");
 	if(lineq == nil)
 		panic("printinit");
 	qnoblock(lineq, 1);
@@ -280,6 +282,8 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
+  uart0_puts("PANIC\r\n");
+  uart0_puts(fmt);
 	int n;
 	va_list arg;
 	char buf[PRINTSIZE];
@@ -411,13 +415,13 @@ finddbgkey(Rune r)
 }
 
 static int
-dbgwork(void *)
+dbgwork(void * v)
 {
 	return dbg.work != 0;
 }
 
 static void
-dbgproc(void *)
+dbgproc(void * v)
 {
 	Dbgkey *dp;
 
@@ -499,7 +503,7 @@ isdbgkey(Rune r)
 }
 
 static void
-dbgtoggle(Rune)
+dbgtoggle(Rune r)
 {
 	dbg.on = !dbg.on;
 	print("Debug keys %s\n", dbg.on ? "HOT" : "COLD");
@@ -731,13 +735,13 @@ fddump()
 }
 
 static void
-qpanic(Rune)
+qpanic(Rune r)
 {
 	panic("User requested panic.");
 }
 
 static void
-rexit(Rune)
+rexit(Rune r)
 {
 	exit(0);
 }

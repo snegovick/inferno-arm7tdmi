@@ -462,7 +462,7 @@ notkilled(void)
 }
 
 void
-pexit(char*, int)
+pexit(char* o_c, int o_i)
 {
 	Osenv *o;
 
@@ -691,7 +691,7 @@ renameuser(char *old, char *new)
 }
 
 int
-return0(void*)
+return0(void* o_v)
 {
 	return 0;
 }

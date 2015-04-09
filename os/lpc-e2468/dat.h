@@ -25,7 +25,8 @@ struct Lock
 
 struct Label
 {
-	int x;
+  ulong sp;
+  ulong pc;
 };
 
 enum
@@ -47,25 +48,34 @@ struct  FPU
 
 struct Conf
 {
-	ulong   nmach;      /* processors */
-	ulong   nproc;      /* processes */
-	ulong   npage0;     /* total physical pages of memory */
-	ulong   npage1;     /* total physical pages of memory */
-	ulong   base0;      /* base of bank 0 */
-	ulong   base1;      /* base of bank 1 */
-	ulong   ialloc;     /* max interrupt time allocation in bytes */
+	ulong	nmach;			/* processors */
+	ulong	nproc;			/* processes */
+	ulong	npage0;			/* total physical pages of memory */
+	ulong	npage1;			/* total physical pages of memory */
+	ulong	topofmem;		/* highest physical address + 1 */
+	ulong	npage;			/* total physical pages of memory */
+	ulong	base0;			/* base of bank 0 */
+	ulong	base1;			/* base of bank 1 */
+	ulong	ialloc;			/* max interrupt time allocation in bytes */
 };
 
 #include "../port/portdat.h"
 
 struct Mach
 {
+  ulong splpc; /* pc of last caller to splhi */
 	int     machno;     /* physical id of processor */
 	ulong   ticks;      /* of the clock since boot time */
 	Proc*   proc;       /* current process on this processor */
 	Label   sched;      /* scheduler wakeup */
+	ulong	cpuhz;
 };
 
 extern Mach *m;
 extern Proc *up;
 
+typedef struct Vectorpage {
+	void	(*vectors[8])(void);
+	uint	vtable[8];
+} Vectorpage;
+extern Vectorpage *page0;

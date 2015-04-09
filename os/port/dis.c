@@ -1009,7 +1009,7 @@ disfault(void *reg, char *msg)
 }
 
 void
-vmachine(void*)
+vmachine(void* o_v)
 {
 	Prog *r;
 	Osenv *o;

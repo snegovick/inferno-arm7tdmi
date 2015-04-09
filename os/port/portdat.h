@@ -126,7 +126,7 @@ struct Talarm
 struct Alarms
 {
 	QLock;
-	Proc*	head;
+	//Proc*	head;
 };
 
 struct Rootdata

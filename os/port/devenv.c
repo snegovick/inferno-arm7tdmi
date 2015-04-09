@@ -16,7 +16,7 @@ enum
 };
 
 static int
-envgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
+envgen(Chan *c, char* o_c, Dirtab* d, int i, int s, Dir *dp)
 {
 	Egrp *eg;
 	Evalue *e;
@@ -99,7 +99,7 @@ envopen(Chan *c, int mode)
 }
 
 static void
-envcreate(Chan *c, char *name, int mode, ulong)
+envcreate(Chan *c, char *name, int mode, ulong o_ul)
 {
 	Egrp *eg;
 	Evalue *e, **le;
@@ -317,7 +317,7 @@ egrpcpy(Egrp *to, Egrp *from)
 }
 
 void
-ksetenv(char *var, char *val, int)
+ksetenv(char *var, char *val, int o_i)
 {
 	Chan *c;
 	char buf[2*KNAMELEN];

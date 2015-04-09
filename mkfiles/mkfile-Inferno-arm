@@ -1,24 +1,55 @@
 TARGMODEL=	Inferno
 TARGSHTYPE=	rc
-CPUS=		arm mips 386 amd64
+CPUS=		arm
 
-O=		5
-OS=		v851ok0q2t6
+O=		o
+OS=		o
 
-AR=		iar
-ARFLAGS=	vu
+AR=		arm-none-eabi-ar
+ARFLAGS= ruvs
 
-AS=		5a
-ASFLAGS=
+AS=arm-none-eabi-gcc -c
+ASFLAGS= -x assembler-with-cpp -mcpu=arm7tdmi-s -c
 
-CC=		5c
-CFLAGS=		-wFV -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/Inferno/include -I$ROOT/include
+CC=arm-none-eabi-gcc -O0 -std=c1x -fno-builtin -fms-extensions -DUSED(...)=void -DSET(...) -c
+CFLAGS=		-O\
+		-Wuninitialized -Wno-unused -Wreturn-type -Wimplicit\
+		-I$ROOT/Inferno/arm/include\
+		-I$ROOT/include\
+    -I$ROOT/os/lpc-e2468\
+		-DLINUX_ARM\
+
 ANSICPP= -p
 
-LD=		5l
-LDFLAGS=
+LD=arm-none-eabi-gcc
+LDFLAGS=-nostartfiles 
 
-SYSLIBS=	#-lc
+SYSLIBS=
 
 YACC=		yacc
 YFLAGS=		-d
+
+# TARGMODEL=	Inferno
+# TARGSHTYPE=	rc
+# CPUS=		arm mips 386 amd64
+
+# O=		5
+# OS=		v851ok0q2t6
+
+# AR=		iar
+# ARFLAGS=	vu
+
+# AS=		5a
+# ASFLAGS=
+
+# CC=		5c
+# CFLAGS=		-wFV -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/Inferno/include -I$ROOT/include
+# ANSICPP= -p
+
+# LD=		5l
+# LDFLAGS=
+
+# SYSLIBS=	#-lc
+
+# YACC=		yacc
+# YFLAGS=		-d

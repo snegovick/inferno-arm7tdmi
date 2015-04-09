@@ -1,4 +1,4 @@
-TEXT	setfcr(SB), $0
+/*TEXT	setfcr(SB), $0
 	RET
 
 TEXT	getfcr(SB), $0
@@ -10,3 +10,5 @@ TEXT	getfsr(SB), $0
 TEXT	setfsr(SB), $0
 	RET
 
+
+*/

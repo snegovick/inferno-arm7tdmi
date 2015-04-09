@@ -204,7 +204,7 @@ _quotestrfmt(int runesin, Fmt *f)
 		outlen = (char*)f->stop - (char*)f->to;
 
 	_quotesetup(s, r, -1, outlen, &q, f->flags&FmtSharp, f->runes);
-//print("bytes in %d bytes out %d runes in %d runesout %d\n", q.nbytesin, q.nbytesout, q.nrunesin, q.nrunesout);
+  //print("bytes in %d bytes out %d runes in %d runesout %d\n", q.nbytesin, q.nbytesout, q.nrunesin, q.nrunesout);
 
 	if(runesin){
 		if(!q.quoted)
@@ -232,8 +232,11 @@ quoterunestrfmt(Fmt *f)
 void
 quotefmtinstall(void)
 {
+  pref_printf("in quotefmtinstall\r\n");
 	fmtinstall('q', quotestrfmt);
+  pref_printf("quotefmtinstall 1 fmtinstall done\r\n");
 	fmtinstall('Q', quoterunestrfmt);
+  pref_printf("quotefmtinstall 2 fmtinstall done\r\n");
 }
 
 int

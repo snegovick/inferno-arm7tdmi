@@ -86,6 +86,7 @@ fmtfmt(int c)
 int
 fmtinstall(int c, Fmts f)
 {
+  pref_printf("in fmtinstall\r\n");
 	Convfmt *p, *ep;
 
 	if(c<=0 || c>=65536)
@@ -93,7 +94,9 @@ fmtinstall(int c, Fmts f)
 	if(!f)
 		f = _badfmt;
 
+  pref_printf("fmtinstall: call _fmtlock\r\n");
 	_fmtlock();
+  pref_printf("fmtinstall: _fmtlock done\r\n");
 
 	ep = &fmtalloc.fmt[fmtalloc.nfmt];
 	for(p=fmtalloc.fmt; p<ep; p++)
@@ -105,13 +108,17 @@ fmtinstall(int c, Fmts f)
 		return -1;
 	}
 
+  pref_printf("fmtinstall: 1\r\n");
+
 	p->fmt = f;
 	if(p == ep){	/* installing a new format character */
 		fmtalloc.nfmt++;
 		p->c = c;
 	}
 
+  pref_printf("fmtinstall: _fmtunlock\r\n");
 	_fmtunlock();
+  pref_printf("fmtinstall: _fmtunlock done\r\n");
 	return 0;
 }
 

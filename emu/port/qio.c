@@ -831,7 +831,6 @@ Queue*
 qopen(int limit, int msg, void (*kick)(void*), void *arg)
 {
 	Queue *q;
-
 	q = kmalloc(sizeof(Queue));
 	if(q == 0)
 		return 0;

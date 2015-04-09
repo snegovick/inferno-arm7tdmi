@@ -41,7 +41,7 @@
  *	cache strategy varies as needed (see mmu.c)
  */
 
-#define KZERO		0xA0000000
+#define KZERO		0xA0008000
 #define MACHADDR	(KZERO+0x00001000)
 #define KTTB		(KZERO+0x00004000)
 /*#define KTZERO	(KZERO+0x00008010)*/

@@ -798,8 +798,9 @@ Queue*
 qopen(int limit, int msg, void (*kick)(void*), void *arg)
 {
 	Queue *q;
-
+  uart0_puts("1\r\n");
 	q = malloc(sizeof(Queue));
+  uart0_puts("2\r\n");
 	if(q == 0)
 		return 0;
 

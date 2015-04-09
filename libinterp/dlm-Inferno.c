@@ -40,12 +40,14 @@ newdyncode(int fd, char *path, Dir *dir)
 		DBG("%s\n", enverror());
 		goto Error;
 	}
-	v = addr("XXX", "module", o, signof(char*));
+//	v = addr("XXX", "module", o, signof(char*));
+	v = addr("XXX", "module", o, sizeof(char *));
 	if(v == nil)
 		goto Error;
 	name = *(char**)v;
 	DBG("module name is %s\n", name);
-	r = addr(name, "modtab", o, signof(Runtab[]));
+//	r = addr(name, "modtab", o, signof(Runtab[]));
+	r = addr(name, "modtab", o, sizeof(Runtab*));
 	if(r == nil)
 		goto Error;
 	m = builtinmod(name, r, 0);

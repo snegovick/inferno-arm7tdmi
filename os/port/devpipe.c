@@ -108,7 +108,7 @@ pipeattach(char *spec)
 }
 
 static int
-pipegen(Chan *c, char *, Dirtab *tab, int ntab, int i, Dir *dp)
+pipegen(Chan *c, char *o_c, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	int id, len;
 	Qid qid;
@@ -294,7 +294,7 @@ pipeclose(Chan *c)
 }
 
 static long
-piperead(Chan *c, void *va, long n, vlong)
+piperead(Chan *c, void *va, long n, vlong o_vl)
 {
 	Pipe *p;
 
@@ -335,7 +335,7 @@ pipebread(Chan *c, long n, ulong offset)
  *  the prog.
  */
 static long
-pipewrite(Chan *c, void *va, long n, vlong)
+pipewrite(Chan *c, void *va, long n, vlong o_vl)
 {
 	Pipe *p;
 	Prog *r;

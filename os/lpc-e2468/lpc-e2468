@@ -47,6 +47,11 @@ port
 
 code
 	int consoleprint = 1;
+	int kernel_pool_pcnt = 10;
+	int main_pool_pcnt = 33;
+	int heap_pool_pcnt = 34;
+	int image_pool_pcnt = 33;
+
 
 init
 	bootinit

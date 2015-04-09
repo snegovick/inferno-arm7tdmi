@@ -2,9 +2,9 @@
 
 CONF=lpc-e2468
 CONFLIST=lpc-e2468
-loadaddr=0x00008000
+loadaddr=0xa0008000
 
-SYSTARG=$OSTARG
+SYSTARG=Inferno
 OBJTYPE=arm
 INSTALLDIR=$ROOT/Inferno/$OBJTYPE/bin
 
@@ -15,6 +15,9 @@ INSTALLDIR=$ROOT/Inferno/$OBJTYPE/bin
 OBJ=\
     load.$O\
     main.$O\
+    util.$O\
+    bsp_sdram.$O\
+    bsp_uart.$O\
     $IP\
     $DEVS\
     $ETHERS\
@@ -26,8 +29,9 @@ OBJ=\
 
 LIBNAMES=${LIBS:%=lib%.a}
 LIBDIRS=$LIBS
+CP=arm-none-eabi-objcopy
 
-CFLAGS=-wFV -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/include -I$ROOT/libinterp
+CFLAGS= -mcpu=arm7tdmi-s -I$ROOT/Inferno/$OBJTYPE/include -I$ROOT/include -I$ROOT/libinterp -I./ -DLINUX_ARM
 KERNDATE=`{$NDATE}
 
 HFILES=\
@@ -35,12 +39,16 @@ HFILES=\
     dat.h\
     fns.h\
     io.h\
+    bsp_sdram.h\
+    bsp_regs.h\
+    bsp_uart.h\
 
 default:V: i$CONF
 
 i$CONF: $OBJ $CONF.c $CONF.root.h $LIBNAMES
     $CC $CFLAGS -DKERNDATE=$KERNDATE $CONF.c
-    $LD -l -o $target -R4 -T$loadaddr $OBJ $CONF.$O $LIBFILES
+    $LD -mcpu=arm7tdmi-s  -nostartfiles -Wl,-Map=main.map,--cref,--gc-sections -Tlpc_e2468.ld $OBJ $CONF.$O $LIBFILES -lgcc -lc -lm -o ilpc-e2468.elf
+    $CP -O binary ilpc-e2468.elf ilpc-e2468.bin
 
 <../port/portmkfile
 

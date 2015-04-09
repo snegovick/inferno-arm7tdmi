@@ -12,13 +12,13 @@
  */
 
 void*
-dynimport(Dynobj*, char*, ulong)
+dynimport(Dynobj* o_d, char* o_c, ulong o_u)
 {
 	return nil;
 }
 
 void
-dynobjfree(Dynobj*)
+dynobjfree(Dynobj* o_d)
 {
 }
 
@@ -30,19 +30,19 @@ kdynloadfd(int fd, Dynsym *tab, int ntab)
 }
 
 int
-kdynloadable(int)
+kdynloadable(int o_i)
 {
 	return 0;
 }
 
 Dynobj*
-dynld(int)
+dynld(int o_i)
 {
 	return nil;
 }
 
 int
-dynldable(int)
+dynldable(int o_i)
 {
 	return 0;
 }

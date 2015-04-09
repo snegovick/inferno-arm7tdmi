@@ -24,7 +24,7 @@ static struct
 } rb;
 
 static int
-rbnotfull(void*)
+rbnotfull(void* o_v)
 {
 	int i;
 
@@ -35,13 +35,13 @@ rbnotfull(void*)
 }
 
 static int
-rbnotempty(void*)
+rbnotempty(void* o_v)
 {
 	return rb.wp != rb.rp;
 }
 
 static void
-genrandom(void*)
+genrandom(void* o_v)
 {
 	setpri(PriBackground);
 

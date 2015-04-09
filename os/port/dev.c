@@ -53,7 +53,7 @@ devdir(Chan *c, Qid qid, char *n, vlong length, char *user, long perm, Dir *db)
  * the zeroth element of the table MUST be the directory itself for ..
 */
 int
-devgen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
+devgen(Chan *c, char* o_c, Dirtab *tab, int ntab, int i, Dir *dp)
 {
 	if(tab == 0)
 		return -1;
@@ -345,7 +345,7 @@ Return:
 }
 
 void
-devcreate(Chan*, char*, int, ulong)
+devcreate(Chan* o_c, char* o_ch, int o_i, ulong o_ul)
 {
 	error(Eperm);
 }
@@ -384,26 +384,26 @@ devbwrite(Chan *c, Block *bp, ulong offset)
 }
 
 void
-devremove(Chan*)
+devremove(Chan* o_c)
 {
 	error(Eperm);
 }
 
 int
-devwstat(Chan*, uchar*, int)
+devwstat(Chan* o_c, uchar* o_uc, int o_i)
 {
 	error(Eperm);
 	return 0;
 }
 
 void
-devpower(int)
+devpower(int o_i)
 {
 	error(Eperm);
 }
 
 int
-devconfig(int, char *, DevConf *)
+devconfig(int o_i, char * o_c, DevConf *o_dc)
 {
 	error(Eperm);
 	return 0;
