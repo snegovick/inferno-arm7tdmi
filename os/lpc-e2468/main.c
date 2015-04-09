@@ -70,6 +70,17 @@ uint32_t getcpuid(void) {
 void userinit(void) {
 }
 
+static void
+poolsizeinit(void)
+{
+	ulong nb;
+
+	nb = conf.npage*BY2PG;
+	poolsize(mainmem, (nb*main_pool_pcnt)/100, 0);
+	poolsize(heapmem, (nb*heap_pool_pcnt)/100, 0);
+	poolsize(imagmem, (nb*image_pool_pcnt)/100, 1);
+}
+
 int main(int argc, char** argv) {
   //clk_init();
   //uart0_init();
@@ -140,8 +151,12 @@ int main(int argc, char** argv) {
 	xinit();
   pref_printf("[DONE]\r\n");
 	/* mmuinit(); */
-	/* poolinit(); */
-	/* poolsizeinit(); */
+  pref_printw("Call poolinit");
+	poolinit();
+  pref_printf("[DONE]\r\n");
+  pref_printw("Call poolsizeinit");
+	poolsizeinit();
+  pref_printf("[DONE]\r\n");
 	/* trapinit(); */
 	/* clockinit();  */
   uart0_puts("Init UART...");
