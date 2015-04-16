@@ -106,11 +106,17 @@ Chan*
 devclone(Chan *c)
 {
 	Chan *nc;
+	Osenv *o = up->env;
+//  dis_printf("devclone:: 0 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 
 	if(c->flag & COPEN)
 		panic("clone of open file type %C\n", devtab[c->type]->dc);
 
+  dis_printf("devclone:: 1 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+
 	nc = newchan();
+
+  dis_printf("devclone:: 2 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 
 	nc->type = c->type;
 	nc->dev = c->dev;
@@ -122,6 +128,7 @@ devclone(Chan *c)
 	nc->aux = c->aux;
 	nc->mqid = c->mqid;
 	nc->mcp = c->mcp;
+//  dis_printf("devclone:: 3 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	return nc;
 }
 
@@ -132,6 +139,10 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 	Walkqid *wq;
 	char *n;
 	Dir dir;
+
+	Osenv *o = up->env;
+
+//  dis_printf("devwalk:: 0 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 
 	if(nname > 0)
 		isdir(c);
@@ -144,12 +155,19 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 		free(wq);
 		return nil;
 	}
+
+//  dis_printf("devwalk:: 0.5 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+
 	if(nc == nil){
+    dis_printf("devwalk:: 0.6 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 		nc = devclone(c);
+    dis_printf("devwalk:: 0.7 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 		nc->type = 0;	/* device doesn't know about this channel yet */
 		alloc = 1;
 	}
 	wq->clone = nc;
+
+//  dis_printf("devwalk:: 1 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 
 	for(j=0; j<nname; j++){
 		if(!(nc->qid.type&QTDIR)){
@@ -203,6 +221,7 @@ devwalk(Chan *c, Chan *nc, char **name, int nname, Dirtab *tab, int ntab, Devgen
 	 * the cloned channel and return just the Qids of the walks.
 	 */
 Done:
+//  dis_printf("devwalk:: 2 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	poperror();
 	if(wq->nqid < nname){
 		if(alloc)

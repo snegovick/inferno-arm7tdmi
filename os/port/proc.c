@@ -46,8 +46,10 @@ char *statename[] =
 void
 schedinit(void)		/* never returns */
 {
+  pref_printf("in schedinit addr: %x\r\n", (unsigned long int)(m));
 	setlabel(&m->sched);
 	if(up) {
+    pref_printf("schedinit up\r\n");
 /*
 		if((e = up->edf) && (e->flags & Admitted))
 			edfrecord(up);
@@ -84,7 +86,9 @@ schedinit(void)		/* never returns */
 void
 sched(void)
 {
+  pref_printf("in sched\r\n");
 	if(up) {
+    pref_printf("sched up\r\n");
 		splhi();
 		procsave(up);
 		if(setlabel(&up->sched)) {
@@ -96,6 +100,8 @@ sched(void)
 	}
 	up = runproc();
 	up->state = Running;
+  pref_printf("sched machno: %i, addr: %x\r\n", m->machno, (unsigned long int)up);
+  pref_printf("sched up->sched.pc: %x\r\n", up->sched.pc);
 	up->mach = MACHP(m->machno);	/* m might be a fixed address; use MACHP */
 	m->proc = up;
 	gotolabel(&up->sched);
@@ -291,8 +297,11 @@ procinit(void)
 	procalloc.arena = procalloc.free;
 
 	p = procalloc.free;
-	for(i=0; i<conf.nproc-1; i++,p++)
+  bsp_printf("procinit conf.nproc: %i\r\n", conf.nproc);
+	for(i=0; i<conf.nproc-1; i++,p++) {
+    bsp_printf("procinit allocating %i\r\n", i);
 		p->qnext = p+1;
+  }
 	p->qnext = 0;
 
 	debugkey('p', "processes", procdump, 0);

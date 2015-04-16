@@ -154,10 +154,13 @@ chandevreset(void)
 void
 chandevinit(void)
 {
+  dis_printf("chandevinit::\r\n");
 	int i;
 
-	for(i=0; devtab[i] != nil; i++)
+	for(i=0; devtab[i] != nil; i++) {
+    dis_printf("chandevinit:: init device\r\n");
 		devtab[i]->init();
+  }
 }
 
 void
@@ -175,13 +178,35 @@ chandevshutdown(void)
 Chan*
 newchan(void)
 {
+	Osenv *o = up->env;
 	Chan *c;
 
+  dis_dbg("newchan:: slash->name addr ");
+  dis_addr(o->pgrp->slash->name);
+  dis_dbg("\r\n");
+//  dis_printf("newchan:: 0 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	lock(&chanalloc);
 	c = chanalloc.free;
+  dis_dbg("newchan:: c addr before ");
+  dis_addr(c);
+  dis_dbg("\r\n");
+
 	if(c != 0)
 		chanalloc.free = c->next;
+  c = chanalloc.free;
 	unlock(&chanalloc);
+
+  dis_dbg("newchan:: 1 slash->name addr ");
+  dis_addr(o->pgrp->slash->name);
+  dis_dbg("\r\n");
+
+
+//  dis_printf("newchan:: 1 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+
+  dis_dbg("newchan:: c addr after");
+  dis_addr(c);
+  dis_dbg("\r\n");
+
 
 	if(c == nil) {
 		c = smalloc(sizeof(Chan));
@@ -191,6 +216,16 @@ newchan(void)
 		chanalloc.list = c;
 		unlock(&chanalloc);
 	}
+
+  dis_dbg("newchan:: c addr ");
+  dis_addr(c);
+  dis_dbg("\r\n");
+
+  dis_dbg("newchan:: 2 slash->name addr ");
+  dis_addr(o->pgrp->slash->name);
+  dis_dbg("\r\n");
+
+//  dis_printf("newchan:: 2 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 
 	/* if you get an error before associating with a dev,
 	   close calls rootclose, a nop */
@@ -211,6 +246,11 @@ newchan(void)
 	c->mqid.vers = 0;
 	c->mqid.type = 0;
 	c->name = 0;
+
+  dis_dbg("newchan:: 3 slash->name addr ");
+  dis_addr(o->pgrp->slash->name);
+  dis_dbg("\r\n");
+
 	return c;
 }
 
@@ -222,13 +262,19 @@ newcname(char *s)
 	Cname *n;
 	int i;
 
+  dis_printf("newcname:: smalloc: %s\r\n", s);
 	n = smalloc(sizeof(Cname));
+  dis_printf("newcname:: after smalloc, addr: %x\r\n", (ulong)n);
 	i = strlen(s);
+  dis_printf("newcname:: strlen: %i\r\n", i);
 	n->len = i;
 	n->alen = i+CNAMESLOP;
+  dis_printf("newcname:: smalloc2\r\n");
 	n->s = smalloc(n->alen);
+  dis_printf("newcname:: memmove\r\n");
 	memmove(n->s, s, i+1);
 	n->ref = 1;
+  dis_printf("newcname:: incref\r\n");
 	incref(&ncname);
 	return n;
 }
@@ -236,18 +282,24 @@ newcname(char *s)
 void
 cnameclose(Cname *n)
 {
+  dis_printf("cnameclose %x\r\n", n);
 	if(n == nil)
 		return;
+  dis_printf("cnameclose if decref\r\n");
 	if(decref(n))
 		return;
+//  dis_printf("cnameclose decref\r\n");
 	decref(&ncname);
+  dis_printf("cnameclose free n->s\r\n");
 	free(n->s);
+  dis_printf("cnameclose free n\r\n");
 	free(n);
 }
 
 Cname*
 addelem(Cname *n, char *s)
 {
+  dis_printf("addelem::\r\n");
 	int i, a;
 	char *t;
 	Cname *new;
@@ -255,13 +307,17 @@ addelem(Cname *n, char *s)
 	if(s[0]=='.' && s[1]=='\0')
 		return n;
 
+  dis_printf("addelem:: if1\r\n");
 	if(n->ref > 1){
+    dis_printf("addelem:: n->ref>1, n->len: %i\r\n", n->len);
 		/* copy on write */
 		new = newcname(n->s);
+    dis_printf("addelem:: cnameclose\r\n");
 		cnameclose(n);
 		n = new;
 	}
 
+  dis_printf("addelem:: if2\r\n");
 	i = strlen(s);
 	if(n->len+1+i+1 > n->alen){
 		a = n->len+1+i+1 + CNAMESLOP;
@@ -271,6 +327,8 @@ addelem(Cname *n, char *s)
 		n->s = t;
 		n->alen = a;
 	}
+
+  dis_printf("addelem:: if3\r\n");
 	if(n->len>0 && n->s[n->len-1]!='/' && s[0]!='/')	/* don't insert extra slash if one is present */
 		n->s[n->len++] = '/';
 	memmove(n->s+n->len, s, i+1);
@@ -283,6 +341,7 @@ addelem(Cname *n, char *s)
 void
 chanfree(Chan *c)
 {
+  dis_printf("===========\r\ncfree:: chan: %x\r\n=============\r\n", (ulong)c);
 	c->flag = CFREE;
 
 	if(c->umh != nil){
@@ -313,11 +372,15 @@ chanfree(Chan *c)
 void
 cclose(Chan *c)
 {
+  dis_printf("cclose:: chan addr: %x, cname: %x\r\n", (ulong)c, (ulong)c->name);
 	if(c == 0)
 		return;
 
+  dis_printf("cclose:: check\r\n");
 	if(c->flag&CFREE)
 		panic("cclose %lux", getcallerpc(&c));
+
+  dis_printf("cclose:: decref\r\n");
 
 	if(decref(c))
 		return;
@@ -594,14 +657,23 @@ cclone(Chan *c)
 	Chan *nc;
 	Walkqid *wq;
 
+	Osenv *o = up->env;
+
+  dis_printf("cclone:: 0 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+  dis_printf("cclone:: walkaddr: %x\r\n", (ulong)devtab[c->type]->walk);
 	wq = devtab[c->type]->walk(c, nil, nil, 0);
 	if(wq == nil)
 		error("clone failed");
+  dis_printf("cclone:: 1 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	nc = wq->clone;
+  dis_printf("cclone:: 2 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	free(wq);
+  dis_printf("cclone:: 3 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	nc->name = c->name;
+  dis_printf("cclone:: 4 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	if(c->name)
 		incref(c->name);
+  dis_printf("cclone:: 5 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
 	return nc;
 }
 
@@ -700,6 +772,7 @@ static char Edoesnotexist[] = "does not exist";
 int
 walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 {
+  dis_printf("walk::\r\n");
 	int dev, dotdot, i, n, nhave, ntry, type;
 	Chan *c, *nc;
 	Cname *cname;
@@ -712,6 +785,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	cname = c->name;
 	incref(cname);
 	mh = nil;
+  dis_printf("walk:: cname->len: %i, c addr: %x, cname addr: %x\r\n", cname->len, (ulong)c, (ulong)cname);
 
 	/*
 	 * While we haven't gotten all the way down the path:
@@ -723,8 +797,10 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	 * An invariant is that each time through the loop, c is on the undomount
 	 * side of the mount point, and c's name is cname.
 	 */
+  dis_printf("walk:: before for, nnames: %i\r\n", nnames);
 	for(nhave=0; nhave<nnames; nhave+=n){
 		if((c->qid.type&QTDIR)==0){
+      dis_printf("walk:: dir\r\n");
 			if(nerror)
 				*nerror = nhave;
 			cnameclose(cname);
@@ -732,8 +808,10 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 			strcpy(up->env->errstr, Enotdir);
 			if(mh != nil)
 				putmhead(mh);
+      dis_printf("walk:: r1\r\n");
 			return -1;
 		}
+    dis_printf("walk:: after if\r\n");
 		ntry = nnames - nhave;
 		if(ntry > MAXWELEM)
 			ntry = MAXWELEM;
@@ -748,16 +826,17 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				break;
 			}
 		}
-
+    dis_printf("walk:: after for\r\n");
 		if(!dotdot && !nomount)
 			domount(&c, &mh);
 
 		type = c->type;
 		dev = c->dev;
-
+    dis_printf("walk:: before if2\r\n");
 		if((wq = devtab[type]->walk(c, nil, names+nhave, ntry)) == nil){
 			/* try a union mount, if any */
 			if(mh && !nomount){
+        dis_printf("walk:: union mount\r\n");
 				/*
 				 * mh->mount == c, so start at mh->mount->next
 				 */
@@ -772,18 +851,21 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				}
 			}
 			if(wq == nil){
+        dis_printf("walk:: wq==nil\r\n");
 				cclose(c);
 				cnameclose(cname);
 				if(nerror)
 					*nerror = nhave+1;
 				if(mh != nil)
 					putmhead(mh);
+        dis_printf("walk:: r2\r\n");
 				return -1;
 			}
 		}
-
+    dis_printf("walk:: after if2\r\n");
 		nmh = nil;
 		if(dotdot) {
+      dis_printf("walk:: dotdot\r\n");
 			assert(wq->nqid == 1);
 			assert(wq->clone != nil);
 
@@ -791,11 +873,13 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 			nc = undomount(wq->clone, cname);
 			n = 1;
 		} else {
+      dis_printf("walk:: not dotdot\r\n");
 			nc = nil;
 			if(!nomount)
 				for(i=0; i<wq->nqid && i<ntry-1; i++)
 					if(findmount(&nc, &nmh, type, dev, wq->qid[i]))
 						break;
+      dis_printf("walk:: ndd if2\r\n");
 			if(nc == nil){	/* no mount points along path */
 				if(wq->clone == nil){
 					cclose(c);
@@ -812,20 +896,26 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 					free(wq);
 					if(mh != nil)
 						putmhead(mh);
+          dis_printf("walk:: r3\r\n");
 					return -1;
 				}
 				n = wq->nqid;
 				nc = wq->clone;
 			}else{		/* stopped early, at a mount point */
+        dis_printf("walk:: ndd else\r\n");
 				if(wq->clone != nil){
 					cclose(wq->clone);
 					wq->clone = nil;
 				}
 				n = i+1;
 			}
-			for(i=0; i<n; i++)
+      dis_printf("walk:: ndd for\r\n");
+			for(i=0; i<n; i++) {
+        dis_printf("walk:: ndd for elem: %i, name: %s\r\n", i, names[nhave+i]);
 				cname = addelem(cname, names[nhave+i]);
+      }
 		}
+    dis_printf("walk:: after if3\r\n");
 		cclose(c);
 		c = nc;
 		putmhead(mh);
@@ -843,6 +933,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 		c->umh = nil;
 	}
 
+  dis_printf("walk:: cnameclose c->name\r\n");
 	cnameclose(c->name);
 	c->name = cname;
 
@@ -850,6 +941,7 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 	*cp = c;
 	if(nerror)
 		*nerror = 0;
+  dis_printf("walk:: r4\r\n");
 	return 0;
 }
 
@@ -1023,11 +1115,13 @@ namec(char *aname, int amode, int omode, ulong perm)
 	nomount = 0;
 	switch(name[0]){
 	case '/':
+    dis_printf("namec: slash case\r\n");
 		c = up->env->pgrp->slash;
 		incref(c);
 		break;
 	
 	case '#':
+    dis_printf("namec:: case #\r\n");
 		nomount = 1;
 		up->genbuf[0] = '\0';
 		n = 0;
@@ -1054,7 +1148,10 @@ namec(char *aname, int amode, int omode, ulong perm)
 		t = devno(r, 1);
 		if(t == -1)
 			error(Ebadsharp);
+    dis_printf("namec:: setting c\r\n");
 		c = devtab[t]->attach(up->genbuf+n);
+//lpccode
+		incref(c);
 		break;
 
 	default:
@@ -1062,6 +1159,9 @@ namec(char *aname, int amode, int omode, ulong perm)
 		incref(c);
 		break;
 	}
+  
+  dis_printf("namec after first switch\r\n");
+
 	prefix = name - aname;
 
 	e.name = nil;
@@ -1076,6 +1176,8 @@ namec(char *aname, int amode, int omode, ulong perm)
 //dumpmount();
 		nexterror();
 	}
+
+  dis_printf("namec after waserror\r\n");
 
 	/*
 	 * Build a list of elements in the path.
@@ -1099,6 +1201,8 @@ namec(char *aname, int amode, int omode, ulong perm)
 		e.nelems--;
 	}
 
+  dis_printf("namec before walk\r\n");
+
 	if(walk(&c, e.elems, e.nelems, nomount, &npath) < 0){
 		if(npath < 0 || npath > e.nelems){
 			print("namec %s walk error npath=%d\n", aname, npath);
@@ -1114,6 +1218,8 @@ namec(char *aname, int amode, int omode, ulong perm)
 		snprint(up->env->errstr, ERRMAX, "%#q %s", up->genbuf, tmperrbuf);
 		nexterror();
 	}
+
+  dis_printf("namec after walk\r\n");
 
 	if(e.mustbedir && !(c->qid.type&QTDIR)){
 		npath = e.nelems;
@@ -1198,8 +1304,11 @@ if(c->umh != nil){
 		 * Directories (e.g. for cd) are left before the mount point,
 		 * so one may mount on / or . and see the effect.
 		 */
-		if(!(c->qid.type & QTDIR))
+    dis_printf("namec atodir case\r\n");
+		if(!(c->qid.type & QTDIR)) {
+      dis_printf("namec atodir error\r\n");
 			error(Enotdir);
+    }
 		break;
 
 	case Amount:
@@ -1298,7 +1407,8 @@ if(c->umh != nil){
 			c->name = addelem(c->name, e.elems[e.nelems-1]);
 			break;
 		}
-
+    
+    dis_printf("namec cclose\r\n");
 		/* create failed */
 		cclose(cnew);
 		if(m)
@@ -1320,7 +1430,7 @@ if(c->umh != nil){
 	default:
 		panic("unknown namec access %d\n", amode);
 	}
-
+  dis_printf("namec poperror\r\n");
 	poperror();
 
 	/* place final element in genbuf for e.g. exec */
@@ -1328,9 +1438,14 @@ if(c->umh != nil){
 		kstrcpy(up->genbuf, e.elems[e.nelems-1], sizeof up->genbuf);
 	else
 		kstrcpy(up->genbuf, ".", sizeof up->genbuf);
+
+  dis_printf("namec free\r\n");
+
 	free(e.name);
 	free(e.elems);
 	free(e.off);
+
+  dis_printf("namec return\r\n");
 
 	return c;
 }

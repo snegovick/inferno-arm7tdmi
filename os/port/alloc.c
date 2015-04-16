@@ -258,30 +258,30 @@ poolsummary(void)
 void*
 poolalloc(Pool *p, ulong asize)
 {
-  uart0_puts("poolalloc\r\n");
+  bsp_printf("poolalloc\r\n");
 	Bhdr *q, *t;
 	int alloc, ldr, ns, frag;
 	int osize, size;
 	Prog *prog;
 
-  uart0_puts("pa0.5\r\n");
+  bsp_printf("pa0.5\r\n");
 
 	if(asize >= 1024*1024*1024)	/* for sanity and to avoid overflow */
 		return nil;
-  uart0_puts("pa0.6\r\n");
+  bsp_printf("pa0.6\r\n");
 	if(p->cursize > p->ressize && (prog = currun()) != nil && prog->flags&Prestricted)
 		return nil;
-  uart0_puts("pa0.7\r\n");
+  bsp_printf("pa0.7\r\n");
 	size = asize;
 	osize = size;
 	size = (size + BHDRSIZE + p->quanta) & ~(p->quanta);
 
-  uart0_puts("call ilock\r\n");
+  bsp_printf("call ilock\r\n");
 	ilock(&p->l);
-  uart0_puts("pa0.8\r\n");
+  bsp_printf("pa0.8\r\n");
 	p->nalloc++;
 
-  uart0_puts("pa1\r\n");
+  bsp_printf("pa1\r\n");
 
 	t = p->root;
 	q = nil;
@@ -303,7 +303,7 @@ poolalloc(Pool *p, ulong asize)
 		else
 			t = t->right;
 	}
-  uart0_puts("poolalloc after while\r\n");
+  bsp_printf("poolalloc after while\r\n");
 	if(q != nil) {
 		pooldel(p, q);
 		q->magic = MAGIC_A;
@@ -329,7 +329,7 @@ poolalloc(Pool *p, ulong asize)
 		iunlock(&p->l);
 		return B2D(q);
 	}
-  uart0_puts("poolalloc : 1\r\n");
+  bsp_printf("poolalloc : 1\r\n");
 	ns = p->chunk;
 	if(size > ns)
 		ns = size;
@@ -358,11 +358,11 @@ poolalloc(Pool *p, ulong asize)
 		alloc = ns+ldr+ldr;
 		p->arenasize += alloc;
 	}
-  uart0_puts("poolalloc : 2\r\n");
+  bsp_printf("poolalloc : 2\r\n");
 	p->nbrk++;
-  uart0_puts("call xalloc\r\n");
+  bsp_printf("call xalloc\r\n");
 	t = xalloc(alloc);
-  uart0_puts("after alloc\r\n");
+  bsp_printf("after alloc\r\n");
 	if(t == nil) {
 		p->nbrk--;
 		iunlock(&p->l);
@@ -370,7 +370,7 @@ poolalloc(Pool *p, ulong asize)
 	}
 	/* Double alignment */
 	t = (Bhdr *)(((ulong)t + 7) & ~7);
-  uart0_puts("poolalloc : 3\r\n");
+  bsp_printf("poolalloc : 3\r\n");
 	/* TBS xmerge */
 	if(0 && p->chain != nil && (char*)t-(char*)B2LIMIT(p->chain)-ldr == 0){
 		/* can merge chains */
@@ -557,12 +557,12 @@ poolread(char *va, int count, ulong offset)
 void*
 malloc(ulong size)
 {
-  uart0_puts("malloc\r\n");
+  bsp_printf("malloc\r\n");
 	void *v;
 
-  uart0_puts("call poolalloc\r\n");
+  bsp_printf("call poolalloc\r\n");
 	v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
-  uart0_puts("poolalloc done\r\n");
+  bsp_printf("poolalloc done\r\n");
 	if(v != nil){
 		if(Npadlong){
 			v = (ulong*)v+Npadlong;
@@ -578,18 +578,22 @@ void*
 smalloc(ulong size)
 {
 	void *v;
-
+  dis_printf("smalloc::\r\n");
 	for(;;) {
 		v = poolalloc(mainmem, size+Npadlong*sizeof(ulong));
 		if(v != nil)
 			break;
+    dis_printf("smalloc:: tsleep\r\n");
 		tsleep(&up->sleep, return0, 0, 100);
+    dis_printf("smalloc:: after tsleep\r\n");
 	}
+  dis_printf("smalloc:: after for\r\n");
 	if(Npadlong){
 		v = (ulong*)v+Npadlong;
 		setmalloctag(v, getcallerpc(&size));
 		setrealloctag(v, 0);
 	}
+  dis_printf("smalloc:: after if\r\n");
 	memset(v, 0, size);
 	return v;
 }

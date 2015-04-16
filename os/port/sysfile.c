@@ -48,6 +48,8 @@ newfd(Chan *c)
 	if(i > f->maxfd)
 		f->maxfd = i;
 	f->fd[i] = c;
+  //lpccode
+  incref(c);
 	unlock(f);
 	return i;
 }
@@ -59,11 +61,14 @@ fdtochan(Fgrp *f, int fd, int mode, int chkmnt, int iref)
 
 	c = 0;
 
+  dis_printf("fdtochan:: fd: %i\r\n", fd);
+
 	lock(f);
 	if(fd<0 || f->maxfd<fd || (c = f->fd[fd])==0) {
 		unlock(f);
 		error(Ebadfd);
 	}
+  dis_printf("fdtochan:: ref: %i\r\n", ((Ref *)c)->ref);
 	if(iref)
 		incref(c);
 	unlock(f);
@@ -551,11 +556,14 @@ kopen(char *path, int mode)
 		return -1;
 
 	openmode(mode);                         /* error check only */
+  
+  dis_printf("kopen namec, path: %s\r\n", path);
 	c = namec(path, Aopen, mode, 0);
 	if(waserror()){
 		cclose(c);
 		nexterror();
 	}
+  dis_printf("kopen newfd\r\n");
 	fd = newfd(c);
 	if(fd < 0)
 		error(Enofd);
@@ -634,19 +642,25 @@ rread(int fd, void *va, long n, vlong *offp)
 	if(waserror())
 		return -1;
 
+  dis_printf("rread:: n: %i\r\n", n);
+
 	c = fdtochan(up->env->fgrp, fd, OREAD, 1, 1);
 	if(waserror()) {
 		cclose(c);
 		nexterror();
 	}
 
+  dis_printf("rread:: 1\r\n");
 	if(n < 0)
 		error(Etoosmall);
 
 	dir = c->qid.type & QTDIR;
-	if(dir && c->umh)
+	if(dir && c->umh) {
+    dis_printf("rread:: 2\r\n");
 		n = unionread(c, va, n);
+  }
 	else{
+    dis_printf("rread:: 3\r\n");
 		if(offp == nil){
 			lock(c);	/* lock for vlong assignment */
 			off = c->offset;
@@ -665,15 +679,20 @@ rread(int fd, void *va, long n, vlong *offp)
 			unionrewind(c);
 		}
 		n = devtab[c->type]->read(c, va, n, off);
+    dis_printf("rread:: after rootread, n: %i\r\n", n);
 		lock(c);
 		c->offset += n;
 		unlock(c);
 	}
 
+  dis_printf("rread:: pop\r\n");
 	poperror();
+  dis_printf("rread:: cclose\r\n");
 	cclose(c);
 
+  dis_printf("rread:: pop2\r\n");
 	poperror();
+  dis_printf("rread:: return\r\n");
 	return n;
 }
 
@@ -967,6 +986,8 @@ kdirstat(char *name)
 	Chan *c;
 	Dir *d;
 
+  dis_printf("kdirstat:: name: %s\r\n", name);
+
 	if(waserror())
 		return nil;
 
@@ -989,16 +1010,22 @@ kdirfstat(int fd)
 	Chan *c;
 	Dir *d;
 
+  dis_printf("kdirfstat:: fd: %i\r\n", fd);
+
 	if(waserror())
 		return nil;
 
 	c = fdtochan(up->env->fgrp, fd, -1, 0, 1);
+  dis_printf("kdirfstat:: chan: %x, ref: %i\r\n", (ulong)c, ((Ref*)c)->ref);
 	if(waserror()) {
+    dis_printf("kdirfstat:: waserror\r\n");
 		cclose(c);
 		nexterror();
 	}
+
 	d = chandirstat(c);
 	poperror();
+  dis_printf("kdirfstat:: cclose\r\n");
 	cclose(c);
 
 	poperror();

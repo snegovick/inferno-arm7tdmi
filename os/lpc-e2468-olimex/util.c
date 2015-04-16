@@ -9,6 +9,11 @@ char p_buffer[PRINTF_BUF_SZ];
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+//bool bsp_debug = true;
+//bool bsp_debug = false;
+//#define BSP_DEBUG 
 
 
 //void _outbyte(int c)
@@ -220,18 +225,18 @@ static int pref_print(char **out, const char *format, va_list args )
 
 int pref_printf(const char *format, ...)
 {
-        va_list args;
-        
-        va_start( args, format );
-        return pref_print( 0, format, args );
+  va_list args;
+  
+  va_start( args, format );
+  return pref_print( 0, format, args );
 }
 
 int pref_sprintf(char *out, const char *format, ...)
 {
-        va_list args;
+  va_list args;
         
-        va_start( args, format );
-        return pref_print( &out, format, args );
+  va_start( args, format );
+  return pref_print( &out, format, args );
 }
 void pref_printw(char* str)
 {
@@ -292,3 +297,71 @@ int m_itoa(int n, char s[])
   return i;
 }
 //#endif
+
+void bsp_dbg(char *s) {
+#ifdef BSP_DEBUG
+  uart0_puts(s);
+#endif
+}
+
+int bsp_printf(const char *format, ...) {
+#ifdef BSP_DEBUG
+    va_list args;
+    
+    va_start( args, format );
+    return pref_print( 0, format, args );
+#endif
+}
+
+void bsp_printw(char* str)
+{
+#ifdef BSP_DEBUG
+  int width = STDWIDTH;
+  char white[STDWIDTH];
+  memset(white, '.', STDWIDTH);
+  width = width - pref_printf(str);
+  white[width+1] = '\0';
+  if (width>0)
+  {
+    pref_outstr(white);
+  }
+#endif
+}
+
+
+void dis_dbg(char *s) {
+#ifdef DIS_DEBUG
+  uart0_puts(s);
+#endif
+}
+
+void dis_addr(void *p) {
+#ifdef DIS_DEBUG
+  uart0_addr(p);
+#endif
+}
+
+
+int dis_printf(const char *format, ...) {
+#ifdef DIS_DEBUG
+    va_list args;
+    
+    va_start( args, format );
+    return pref_print( 0, format, args );
+#endif
+}
+
+void dis_printw(char* str)
+{
+#ifdef DIS_DEBUG
+  int width = STDWIDTH;
+  char white[STDWIDTH];
+  memset(white, '.', STDWIDTH);
+  width = width - pref_printf(str);
+  white[width+1] = '\0';
+  if (width>0)
+  {
+    pref_outstr(white);
+  }
+#endif
+}

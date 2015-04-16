@@ -14,10 +14,16 @@ INSTALLDIR=$ROOT/Inferno/$OBJTYPE/bin
 
 OBJ=\
     load.$O\
+    l.$O\
     main.$O\
     util.$O\
+    clock.$O\
     bsp_sdram.$O\
     bsp_uart.$O\
+    bsp_timer.$O\
+    dump.$O\
+    trap.$O\
+    lpc24xx_irq.$O\
     $IP\
     $DEVS\
     $ETHERS\
@@ -49,7 +55,12 @@ i$CONF: $OBJ $CONF.c $CONF.root.h $LIBNAMES
     $CC $CFLAGS -DKERNDATE=$KERNDATE $CONF.c
     $LD -mcpu=arm7tdmi-s  -nostartfiles -Wl,-Map=main.map,--cref,--gc-sections -Tlpc_e2468.ld $OBJ $CONF.$O $LIBFILES -lgcc -lc -lm -o ilpc-e2468.elf
     $CP -O binary ilpc-e2468.elf ilpc-e2468.bin
+    arm-none-eabi-size ./ilpc-e2468.elf
 
-<../port/portmkfile
+<./portmkfile
 
 main.$O:    $ROOT/Inferno/$OBJTYPE/include/ureg.h
+	$CC $CFLAGS main.c
+
+devuart.$O:	devuart.c
+	$CC $CFLAGS devuart.c

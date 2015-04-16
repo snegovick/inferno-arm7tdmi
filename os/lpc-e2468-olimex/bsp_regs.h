@@ -1,6 +1,7 @@
 #ifndef __BSP_REGS_H__
 #define __BSP_REGS_H__
 
+typedef unsigned long long int uint64_t;
 typedef unsigned long int uint32_t;
 typedef unsigned short uint16_t;
 
@@ -22,14 +23,50 @@ typedef unsigned short uint16_t;
 #define BSP_PCLKSEL0 (*(volatile uint32_t *)0xE01FC1A8)
 #define BSP_PCLKSEL1 (*(volatile uint32_t *)0xE01FC1AC)
 
-#define BSP_PCONP (*(volatile uint32_t *)0xE01FC0C4)
+#define BSP_PCONP       (*(volatile uint32_t *)0xE01FC0C4)
+#define BSP_PCONP_TIM0  (1<<1)
+#define BSP_PCONP_TIM1  (1<<2)
 #define BSP_PCONP_UART0 (1<<3)
 
 #define BSP_PCLK_SEL0 (*(volatile uint32_t *)0xE01FC1A8)
+#define BSP_PCLK_SEL0_SET_TIM0_01 {BSP_PCLK_SEL0 |= (1<<2); BSP_PCLK_SEL0 &= ~(1<<3);}
 #define BSP_PCLK_SEL0_UART0_11 (1<<6 | 1<<7)
+
+#define BSP_T0MCR (*(volatile uint32_t *)0xE0004014)
+#define BSP_T1MCR (*(volatile uint32_t *)0xE0008014)
+#define BSP_T2MCR (*(volatile uint32_t *)0xE0070014)
+#define BSP_T3MCR (*(volatile uint32_t *)0xE0074014)
+#define BSP_TXMCR_MR0I (1)
+#define BSP_TXMCR_MR0R (1<<1)
+#define BSP_TXMCR_MR0S (1<<2)
+#define BSP_T0MR0 (*(volatile uint32_t *)0xE0004018)
+#define BSP_T1MR0 (*(volatile uint32_t *)0xE0008018)
+#define BSP_T2MR0 (*(volatile uint32_t *)0xE0070018)
+#define BSP_T3MR0 (*(volatile uint32_t *)0xE0074018)
+#define BSP_T0IR  (*(volatile uint32_t *)0xE0004000)
+#define BSP_T1IR  (*(volatile uint32_t *)0xE0008000)
+#define BSP_T2IR  (*(volatile uint32_t *)0xE0070000)
+#define BSP_T3IR  (*(volatile uint32_t *)0xE0074000)
+#define BSP_TXIR_MR0 (1)
+#define BSP_TXIR_MR1 (1<<1)
+#define BSP_T0PR  (*(volatile uint32_t *)0xE000400C)
+#define BSP_T1PR  (*(volatile uint32_t *)0xE000800C)
+#define BSP_T2PR  (*(volatile uint32_t *)0xE007000C)
+#define BSP_T3PR  (*(volatile uint32_t *)0xE007400C)
+#define BSP_T0TC  (*(volatile uint32_t *)0xE0004008)
+#define BSP_T1TC  (*(volatile uint32_t *)0xE0008008)
+#define BSP_T2TC  (*(volatile uint32_t *)0xE0070008)
+#define BSP_T3TC  (*(volatile uint32_t *)0xE0074008)
+#define BSP_T0TCR (*(volatile uint32_t *)0xE0004004)
+#define BSP_T1TCR (*(volatile uint32_t *)0xE0008004)
+#define BSP_T2TCR (*(volatile uint32_t *)0xE0070004)
+#define BSP_T3TCR (*(volatile uint32_t *)0xE0074004)
+#define BSP_TXTCR_CE (1)
+#define BSP_TXTCR_CR (1<<1)
 
 #define BSP_U0LCR (*(volatile uint32_t *)0xE000C00C)
 #define BSP_U0LCR_DLAB (1<<7)
+#define BSP_UXLCR_BREAKCONTROL (1<<6)
 #define BSP_U0DLL (*(volatile uint32_t *)0xE000C000)
 #define BSP_U0DLM (*(volatile uint32_t *)0xE000C004)
 #define BSP_U0FCR (*(volatile uint32_t *)0xE000C008)

@@ -54,7 +54,7 @@ code
 
 
 init
-	bootinit
+	lpcinit
 
 root
 	/chan	/
@@ -66,3 +66,4 @@ root
 	/prog	/
 	/dis/lib
 	/dis/disk
+	/osinit.dis

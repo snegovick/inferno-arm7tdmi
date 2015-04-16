@@ -9,7 +9,7 @@
 #define ROUND(s,sz) (((s)+(sz-1))&~(sz-1))
 #define PGROUND(s)	ROUND(s, BY2PG)
 
-#define KSTKSIZE    (8*KiB)
+#define KSTKSIZE    (8*KiB*2)
 #define KSTACK      KSTKSIZE
 
 /*

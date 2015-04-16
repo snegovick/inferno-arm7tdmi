@@ -70,9 +70,9 @@ static Cmdtab sysctlcmd[] =
 void
 printinit(void)
 {
-  uart0_puts("printinit\r\n");
+  bsp_printf("printinit\r\n");
 	lineq = qopen(2*1024, 0, nil, nil);
-  uart0_puts("printinit done\r\n");
+  bsp_printf("printinit done\r\n");
 	if(lineq == nil)
 		panic("printinit");
 	qnoblock(lineq, 1);
@@ -282,8 +282,8 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
-  uart0_puts("PANIC\r\n");
-  uart0_puts(fmt);
+  bsp_printf("PANIC\r\n");
+  bsp_printf(fmt);
 	int n;
 	va_list arg;
 	char buf[PRINTSIZE];

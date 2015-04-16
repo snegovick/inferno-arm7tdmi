@@ -27,10 +27,14 @@ readmod(char *path, Module *m, int sync)
 	if(sync)
 		release();
 
+  pref_printf("readmod kopen\r\n");
+
 	d = nil;
 	fd = kopen(path, OREAD);
 	if(fd < 0)
 		goto done;
+
+  pref_printf("readmod kdirfstat\r\n");
 
 	if((d = kdirfstat(fd)) == nil)
 		goto done;
@@ -57,15 +61,19 @@ readmod(char *path, Module *m, int sync)
 	if(code == nil)
 		goto done;
 
+  pref_printf("readmod kread\r\n");
+
 	n = kread(fd, code, length);
 	if(n != length) {
 		free(code);
 		code = nil;
 	}
 done:
+  pref_printf("readmod:: done\r\n");
 	if(fd >= 0)
 		kclose(fd);
 done1:
+  pref_printf("readmod:: done1\r\n");
 	if(sync)
 		acquire();
 	if(m != nil && ans == nil)

@@ -107,20 +107,20 @@ xspanalloc(ulong size, int align, ulong span)
 void*
 xallocz(ulong size, int zero)
 {
-  uart0_puts("in xalloc\r\n");
+  bsp_printf("in xalloc\r\n");
 	Xhdr *p;
 	Hole *h, **l;
 
 	size += BY2V + sizeof(Xhdr);
 	size &= ~(BY2V-1);
 
-  uart0_puts("xalloc: call ilock\r\n");
+  bsp_printf("xalloc: call ilock\r\n");
 	ilock(&xlists);
-  uart0_puts("xalloc: ilock done\r\n");
+  bsp_printf("xalloc: ilock done\r\n");
   
 	l = &xlists.table;
 	for(h = *l; h; h = h->link) {
-    uart0_puts("xalloc: in for\r\n");
+    bsp_printf("xalloc: in for\r\n");
 		if(h->size >= size) {
 			p = (Xhdr*)h->addr;
 			h->addr += size;

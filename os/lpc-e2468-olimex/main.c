@@ -11,6 +11,7 @@
 
 #include "bsp_regs.h"
 #include "bsp_uart.h"
+#include <stdbool.h>
 
 #include "../port/uart.h"
 PhysUart* physuart[1];
@@ -64,10 +65,90 @@ extern int image_pool_pcnt;
 ulong cpuidlecount;
 
 uint32_t getcpuid(void) {
-  return 0;
+  bsp_printf("bsp:getcpuid\r\n");
+  return 0xabcdef;
+}
+
+void
+init0(void)
+{
+  pref_printf("in init0\r\n");
+	Osenv *o;
+	char buf[2*KNAMELEN];
+//	char *buf;
+
+  pref_printf("init0 up\r\n");
+
+	up->nerrlab = 0;
+
+  pref_printf("init0 calling spllo\r\n");
+	spllo();
+  pref_printf("init0 done\r\n");
+
+	if(waserror())
+		panic("init0 %r");
+
+  pref_printf("init0 no error\r\n");
+	/*
+	 * These are o.k. because rootinit is null.
+	 * Then early kproc's will have a root and dot.
+	 */
+	o = up->env;
+  pref_printf("                         init0 -1\r\n");
+	o->pgrp->slash = namec("#/", Atodir, 0, 0);
+  pref_printf("                         init0 0\r\n");
+	cnameclose(o->pgrp->slash->name);
+  pref_printf("                         init0 1\r\n");
+	o->pgrp->slash->name = newcname("/");
+  pref_printf("init0:: slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+	o->pgrp->dot = cclone(o->pgrp->slash);
+  pref_printf("init0:: slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+
+	chandevinit();
+
+  pref_printf("                         init0 after chandevinit\r\n");
+
+	/* if(!waserror()){ */
+	/* 	ksetenv("cputype", "arm", 0); */
+	/* 	snprint(buf, sizeof(buf), "arm %s", conffile); */
+	/* 	ksetenv("terminal", buf, 0); */
+	/* 	poperror(); */
+	/* } */
+
+	/* poperror(); */
+
+  pref_printf("call osinit.dis\r\n");
+	disinit("/osinit.dis");
 }
 
 void userinit(void) {
+	Proc *p;
+	Osenv *o;
+
+	p = newproc();
+	o = p->env;
+
+	o->fgrp = newfgrp(nil);
+	o->pgrp = newpgrp();
+	o->egrp = newegrp();
+	kstrdup(&o->user, eve);
+
+	strcpy(p->text, "interp");
+	p->fpstate = FPINIT;
+
+	/*
+	 * Kernel Stack
+	 *
+	 * N.B. The -12 for the stack pointer is important.
+	 *	4 bytes for gotolabel's return PC
+	 */
+	p->sched.pc = (ulong)init0;
+	p->sched.sp = (ulong)p->kstack+KSTACK-8;
+
+  pref_printf("userinit sched.pc: %x\r\n", p->sched.pc);
+
+  pref_printf("userinit ready\r\n");
+	ready(p);
 }
 
 static void
@@ -79,6 +160,12 @@ poolsizeinit(void)
 	poolsize(mainmem, (nb*main_pool_pcnt)/100, 0);
 	poolsize(heapmem, (nb*heap_pool_pcnt)/100, 0);
 	poolsize(imagmem, (nb*image_pool_pcnt)/100, 1);
+}
+
+void
+archconsole(void)
+{
+	uartspecial(0, 115200, 'n', &kbdq, &printq, kbdcr2nl);
 }
 
 int main(int argc, char** argv) {
@@ -93,87 +180,77 @@ int main(int argc, char** argv) {
   
 	char *s = "Inferno compiled with arm-none-eabi toolchain\r\n";
   uart0_puts(s);
-  volatile uint32_t i = 100000UL;
-  while (i>0) {
-    i--;
-  }
-  uart0_puts("M addr: ");
-  uart0_addr(m);
-  uart0_puts("\r\n");
-
-  extern char _etext;
-  extern char _data;
-  extern char _edata;
-  char *src = &_etext;
-  char *dst = &_data;
-
-  uart0_puts("src, dst, data: ");
-  uart0_addr(src);
-  uart0_puts(" ");
-  uart0_addr(dst);
-  uart0_puts(" ");
-  uart0_addr(&_edata);
-  uart0_puts("\r\n");
-
-  
-  /* ROM has data at end of text; copy it.  */
-  while (dst < &_edata)
-    *dst++ = *src++;
-
-  uart0_puts("M addr: ");
-  uart0_addr(m);
-  uart0_puts("\r\n");
 
   uart0_puts("Initializing\r\n");
-  extern char * _bss_start;
-  extern char * _bss_end;
-  //char buf[32];
-  //m_itoa((int)m, buf);
-  //uart0_puts("\r\nptr mach: ");
-  //uart0_puts(buf);
 
 	memset(m, 0, sizeof(Mach));	/* clear the mach struct */
   uart0_puts("DONE\r\n");
 	conf.nmach = 1;
-  //pref_printw("Call archreset");
-	//archreset();
-  //pref_printf("[DONE]\r\n");
-	/* dmareset(); */
 
-  pref_printw("Call quotefmtinstall");
+  bsp_printw("Call quotefmtinstall");
 	quotefmtinstall();
-  pref_printf("[DONE]\r\n");
+  bsp_printf("[DONE]\r\n");
 
-  pref_printw("Call confinit");
+  bsp_printw("Call confinit");
 	confinit();
-  pref_printf("[DONE]\r\n");
-  pref_printw("Call xinit");
+  bsp_printf("[DONE]\r\n");
+
+  bsp_printw("Call xinit");
 	xinit();
-  pref_printf("[DONE]\r\n");
+  bsp_printf("[DONE]\r\n");
 	/* mmuinit(); */
-  pref_printw("Call poolinit");
+
+  bsp_printw("Call poolinit");
 	poolinit();
-  pref_printf("[DONE]\r\n");
-  pref_printw("Call poolsizeinit");
+  bsp_printf("[DONE]\r\n");
+
+  bsp_printw("Call poolsizeinit");
 	poolsizeinit();
-  pref_printf("[DONE]\r\n");
-	/* trapinit(); */
-	/* clockinit();  */
+  bsp_printf("[DONE]\r\n");
+
+  bsp_printw("Call clockinit");
+	clockinit();
+  bsp_printf("[DONE]\r\n");
+
   uart0_puts("Init UART...");
 	printinit();
   uart0_puts("DONE\r\n");
-	/* screeninit(); */
-	procinit();
-	links();
-	chandevreset();
 
+  //bsp_printw("Call trap init");
+	//trapinit();
+  //bsp_printf("[DONE]\r\n");
+  
+	/* screeninit(); */
+  bsp_printw("Call procinit");
+	procinit();
+  bsp_printf("[DONE]\r\n");
+
+  bsp_printw("Call links");
+	links();
+  bsp_printf("[DONE]\r\n");
+
+  bsp_printw("Call chandevreset");
+	chandevreset();
+  bsp_printf("[DONE]\r\n");
+
+  eve = strdup("inferno");
+  archconsole();
+
+  bsp_printw("Calling PRINT");
 	print("%ld MHz id %8.8lux\n", (m->cpuhz)/1000000, getcpuid());
 	print("\nInferno %s\n", VERSION);
 	print("Vita Nuova\n");
 	print("conf %s (%lud) jit %d\n\n",conffile, kerndate, cflag);
+  bsp_printf("[DONE]\r\n");
 
+  bsp_printw("Call userinit");
 	userinit();
+  bsp_printf("[DONE]\r\n");
+
+  pref_printw("Call sched init\r\n");
 	schedinit();
+  pref_printf("[DONE]\r\n");
+  pref_printf("\r\nRETURN 1\r\n");
 	return 1;
 }
 
@@ -182,7 +259,7 @@ confinit(void)
 {
 	ulong base;
 
-	conf.topofmem = 0xa0000000+16*MB;
+	conf.topofmem = 0xa0000000+8*MB;
 	m->cpuhz = 57600000;
 
 	base = 0xa0008000+0x100000+0x1000;
@@ -196,19 +273,10 @@ confinit(void)
 	conf.npage = conf.npage0 + conf.npage1;
 	conf.ialloc = (((conf.npage*(main_pool_pcnt))/100)/2)*BY2PG;
 
-	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;
+//	conf.nproc = 100 + ((conf.npage*BY2PG)/MB)*5;
+	conf.nproc = 20;
 	conf.nmach = 1;
 
-}
-
-/*
- *  All traps come here.  It might be slightly slower to have all traps call trap
- *  rather than directly vectoring the handler.
- *  However, this avoids a lot of code duplication and possible bugs.
- *  trap is called splfhi().
- */
-void trap(Ureg* ureg) {
-  for (;;);
 }
 
 ulong va2pa(void *v)
@@ -244,12 +312,25 @@ int splhi(void) {
 
 void    splx(int i)
 {
-  uart0_puts("bsp::splx\r\n");
-  return;
+  __asm__ __volatile__ (
+    "mov %[dst], lr\n"
+    : [dst] "=&r" (m->splpc)
+    );
 }
 int     spllo(void) {
-  uart0_puts("bsp::spllo\r\n");
-  return 0;
+  register uint32_t ret, tmp;
+  uint32_t val = PsrDirq | PsrDfiq;
+
+  __asm__ __volatile__
+  (
+    "mrs %[r0], CPSR\n\t"
+    "bic %[r1], %[r0], %[val]\n\t"
+    "msr CPSR_c, %[r1]\n\t"
+    : [r0] "=r"(ret), [r1] "=r"(tmp)
+    : [val] "r" (val)
+  );
+
+  return ret;
 }
 void splxpc(int i) {
 	/* MOVW		R0, R1 */
@@ -262,23 +343,52 @@ void splxpc(int i) {
   (
     "mrs %[r0], CPSR" "\n\t"
     "msr CPSR_c, %[r1]" "\n\t"
-    : [r0] "=r"(ret), [r1] "=r"(i)
+    : [r0] "=r"(ret)
+    : [r1] "r"(i)
+  );
+
+  return;
+}
+
+int     islo(void) {
+  register uint32_t ret;
+  uint32_t val = PsrDirq;
+
+  __asm__ __volatile__
+  (
+    "mrs %[r0], CPSR\n\t"
+    "and %[r0], %[val]\n\t"
+    "eor %[r0], %[val]\n\t"
+    : [r0] "=r"(ret)
+    : [val] "r" (val)
   );
 
   return ret;
 }
 
-int     islo(void) {
-  uart0_puts("bsp::islo\r\n");
+//int    setlabel(Label* l) __attribute__((naked));
+int    setlabel(Label* l) {
+  __asm__ __volatile__ (
+    "mov %[dstsp], sp\n"
+    "mov %[dstpc], lr\n"
+    : [dstsp] "=&r" (l->sp), [dstpc] "=&r" (l->pc)
+    );
+
   return 0;
 }
-int     setlabel(Label* l) {
-  uart0_puts("bsp::setlabel\r\n");
-  return 0;
-}
+
+//void    gotolabel(Label* l) __attribute__((naked));
 void    gotolabel(Label* l) {
-  uart0_puts("bsp::gotolabel\r\n");
-  return;
+  __asm__ __volatile__ (
+    "mov sp, %[srcsp]\n"
+    "mov lr, %[srcpc]\n"
+    "bx lr"
+    :
+    : [srcsp] "r" (l->sp), [srcpc] "r" (l->pc)
+    );
+//  void (*f)(void) = l->pc;
+//  f();
+  //return;
 }
 /*
 * Functions generated by arm-elf-gcc start
@@ -299,32 +409,57 @@ void    gotolabel(Label* l) {
 *
 * If no such address is found, return an invalid value.
 */
-ulong getcallerpc(void *x)
-{
-  ulong *u;
-  int i;
+/* ulong getcallerpc(void *x) __attribute__((naked)); */
+/* ulong getcallerpc(void *x) */
+/* { */
+/*   /\* ulong *u; *\/ */
+/*   /\* int i; *\/ */
 
-  u = (ulong*)x;
-  for (i=0; i<128; i++, u++)
-    if (*u == (ulong)(u+3))
-      return u[1];
-  return ~0;
-}
+/*   /\* u = (ulong*)x; *\/ */
+/*   /\* for (i=0; i<128; i++, u++) *\/ */
+/*   /\*   if (*u == (ulong)(u+3)) *\/ */
+/*   /\*     return u[1]; *\/ */
+/*   /\* return ~0; *\/ */
+/*   ulong ret; */
+/*   __asm__ __volatile__ ( */
+/*     "mov %[ret], %%lr\n" */
+/*     : [ret] "=r" (ret) */
+/*     ); */
+/*   return ret; */
+/* } */
 
 int     segflush(void* v, ulong u) {
-  uart0_puts("bsp::segflush\r\n");
-  return 0;
+  return 1;
 }
 void
 idlehands(void)
 {
-	//cpuidlecount++;
-	//INTRREG->iccr = 1;	/* only unmasked interrupts will stop idle mode */
-	//idle();
   uart0_puts("bsp::idlehands\r\n");
+	cpuidlecount++;
+	//INTRREG->iccr = 1;	/* only unmasked interrupts will stop idle mode */
+	idle();
 }
 
-void    kprocchild(Proc *p, void (*func)(void*), void *arg) { return; }
+static void
+linkproc(void)
+{
+	spllo();
+	if (waserror())
+		print("error() underflow: %r\n");
+	else
+		(*up->kpfun)(up->arg);
+	pexit("end proc", 1);
+}
+
+void
+kprocchild(Proc *p, void (*func)(void*), void *arg)
+{
+	p->sched.pc = (ulong)linkproc;
+	p->sched.sp = (ulong)p->kstack+KSTACK-8;
+
+	p->kpfun = func;
+	p->arg = arg;
+}
 
 /* inline uint32_t atomic_increment(uint32_t * memory) { */
 /*   uint32_t temp1, temp2; */
@@ -373,14 +508,18 @@ void    kprocchild(Proc *p, void (*func)(void*), void *arg) { return; }
 uint32_t __swp(uint32_t x, volatile uint32_t *p) {
   uint32_t ret;
   __asm__ __volatile__ (
-    "swp %[t2], %[t1], [%[m]]\n"
-    : [t1] "=&r" (x), [t2] "=&r" (ret)
-    : [m] "r" (p)
+    "swp %[ret], %[x], [%[m]]\n"
+    : [ret] "=&r" (ret)
+    : [m] "r" (p), [x] "r" (x)
     );
   return ret;
 }
 
 ulong   _tas(ulong* u) {
+  /* uint32_t ret = *u; */
+  /* *u = 0xdeaddead; */
+  /* pref_printf("tas:: u: %x, ret: %x\r\n", *u, ret); */
+  /* return ret; */
   return __swp(0xDEADDEAD, u);
 }
 
@@ -405,13 +544,19 @@ void    setpanic(void) {
   pref_printf("Infernal panic\r\n");
   while (1);
 }
-void    dumpstack(void) { return; }
-void    reboot(void) { return; }
-void    halt(void) { return; }
+void    reboot(void) {
+  bsp_printf("bsp:reboot\r\n");
+  return;
+}
+void    halt(void) {
+  bsp_printf("bsp:halt\r\n");
+  return;
+}
 
-Timer*  addclock0link(void (*cb)(void), int i) { return 0; }
-void    clockcheck(void) { return; }
-int signof (int i) {return 1;}
+int signof (int i) {
+  bsp_printf("bsp:signof\r\n");
+  return 1;
+}
 
 /* void    fpinit(void) {} */
 /* void    FPsave(void*) {} */

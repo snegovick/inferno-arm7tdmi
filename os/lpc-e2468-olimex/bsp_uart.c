@@ -1,5 +1,6 @@
 #include "bsp_regs.h"
 #include "bsp_uart.h"
+#include <stdbool.h>
 
 void uart0_init (void) {
   BSP_PCONP |= BSP_PCONP_UART0;
@@ -38,6 +39,13 @@ void uart0_putc(uint16_t c) {
   BSP_U0THR = c & 0xFF;
 }
 
+bool uart0_txready(void) {
+  if (BSP_U0LSR & BSP_U0LSR_THRE) {
+    return true;
+  }
+  return false;
+}
+
 void uart0_puts(char *s) {
   int i = 0;
   while (s[i] != 0) {
@@ -52,7 +60,7 @@ void uart0_puts(char *s) {
   }
 }
 
-void uart0_putn(char *s, unsigned int n) {
+void uart0_putn(char *s, int n) {
   int i = 0;
   for (; i<n; i++) {
     //uart0_addr(&s[i]);
@@ -93,4 +101,12 @@ void uart0_itoa(unsigned int a)
 		uart0_putc(h<10 ? h+0x30 : h-10+0x41);
 		uart0_putc(l<10 ? l+0x30 : l-10+0x41);
 	}
+}
+
+void uart0_setbreak(void) {
+  BSP_U0LCR |= BSP_UXLCR_BREAKCONTROL;  
+}
+
+void uart0_unsetbreak(void) {
+  BSP_U0LCR &= ~BSP_UXLCR_BREAKCONTROL;  
 }

@@ -1092,15 +1092,24 @@ disinit(void *a)
 	FPinit();
 	FPsave(&up->env->fpu);
 
+  pref_printf("disinit after fpinit\r\n");
+
 	opinit();
 	modinit();
 	excinit();
 
+  pref_printf("disinit after excinit\r\n");
+
 	root = load(initmod);
+
+  pref_printf("disinit after load\r\n");
+
 	if(root == 0) {
 		kgerrstr(up->genbuf, sizeof up->genbuf);
 		panic("loading \"%s\": %s", initmod, up->genbuf);
 	}
+
+  pref_printf("disinit schedmod\r\n");
 
 	p = schedmod(root);
 

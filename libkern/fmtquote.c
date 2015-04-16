@@ -232,11 +232,11 @@ quoterunestrfmt(Fmt *f)
 void
 quotefmtinstall(void)
 {
-  pref_printf("in quotefmtinstall\r\n");
+  bsp_printf("in quotefmtinstall\r\n");
 	fmtinstall('q', quotestrfmt);
-  pref_printf("quotefmtinstall 1 fmtinstall done\r\n");
+  bsp_printf("quotefmtinstall 1 fmtinstall done\r\n");
 	fmtinstall('Q', quoterunestrfmt);
-  pref_printf("quotefmtinstall 2 fmtinstall done\r\n");
+  bsp_printf("quotefmtinstall 2 fmtinstall done\r\n");
 }
 
 int

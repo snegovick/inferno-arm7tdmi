@@ -71,11 +71,17 @@ rootgen(Chan *c, char *name, Dirtab *tab, int nd, int s, Dir *dp)
 static Walkqid*
 rootwalk(Chan *c, Chan *nc, char **name, int nname)
 {
+	Osenv *o = up->env;
+
+  dis_printf("rootwalk:: 0 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+  dis_printf("rootwalk::\r\n");
 	ulong p;
 
 	p = c->qid.path;
 	if(nname == 0)
 		p = rootdata[p].dotdot;
+  dis_printf("rootwalk:: 1 slashname->len: %i, slash addr: %x, slashname addr: %x\r\n", o->pgrp->slash->name->len, o->pgrp->slash, o->pgrp->slash->name);
+  dis_printf("rootwalk:: devwalk addr: %x\r\n", (ulong)devwalk);
 	return devwalk(c, nc, name, nname, rootdata[p].ptr, rootdata[p].size, rootgen);
 }
 
@@ -108,6 +114,7 @@ rootclose(Chan* c)
 static long	 
 rootread(Chan *c, void *buf, long n, vlong offset)
 {
+  dis_printf("rootread:: \r\n");
 	ulong p, len;
 	uchar *data;
 
