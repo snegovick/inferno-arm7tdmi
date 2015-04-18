@@ -12,7 +12,6 @@
 #endif
 #include <features.h>
 #include <sys/types.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #define sync __os_sync
 #include <unistd.h>
@@ -26,6 +25,7 @@
 #include <float.h>
 #include <time.h>
 #include <endian.h>
+#include <stdlib.h>
 
 #define	getwd	infgetwd
 

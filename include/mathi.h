@@ -31,7 +31,7 @@ extern	double	fmax(double, double);
 extern	double	fmin(double, double);
 extern	double	norm2(int, double*);
 extern	double	norm1(int, double*);
-extern	double	strtod(char *, char **);
+extern	double	strtod(const char *, char **);
 
 /* fdlibm */
 extern double __ieee754_acos(double);

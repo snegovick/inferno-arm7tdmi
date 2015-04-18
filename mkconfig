@@ -4,7 +4,7 @@
 #	They are almost always the same.
 
 #	On Nt systems, the ROOT path MUST be of the form `drive:/path'
-ROOT=/home/snegovick/dev/inferno-arm7tdmi
+ROOT=/home/snegovick/dev/iarm
 
 #
 #	Specify the flavour of Tk (std for standard builds)

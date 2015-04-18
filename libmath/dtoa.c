@@ -667,7 +667,7 @@ match(const char **sp, char *t)
 }
 
 double
-strtod(char *s00, char **se)
+strtod(const char *s00, char **se)
 {
 	int	scale;
 	int	bb2, bb5, bbe, bd2, bd5, bbbits, bs2, c, dsign,
